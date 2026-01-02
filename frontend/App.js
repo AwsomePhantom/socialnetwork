@@ -1,46 +1,59 @@
-// App.js
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import React, { useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import HomeScreen from "./Screens/HomeScreen";
-import SettingsStack from "./Navigation/SettingsStack";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
-import NotificationsScreen from "./Screens/NotificationScree";
+import LoginScreen from './auth/LoginScreen'
+import HomeStack from './screens/home/HomeStack';
+import ChatStack from './screens/chat/ChatStack';
+import EventsScreen from './screens/events/EventsScreen';
+import NotificationsScreen from './screens/notifications/NotificationsScreen';
+import SettingsStack from './screens/settings/SettingsStack';
+import { AuthProvider, useAuth } from './auth/AuthContext';
 
 const Tab = createBottomTabNavigator();
+const RootStack = createNativeStackNavigator();
+
+function NavigationRoot() {
+const { user, isInitializing } = useAuth();
+  if (isInitializing) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        {user == null ? (
+          <RootStack.Screen name="Login" component={LoginScreen} />
+        ) : (
+          <RootStack.Screen name="Main" component={AppTabs} />
+        )}
+      </RootStack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+function AppTabs() {
+  return (
+    <Tab.Navigator>
+      <Tab.Screen name="Home" component={HomeStack} options={{ headerShown: false }} />
+      <Tab.Screen name="Chat" component={ChatStack} options={{ headerShown: false }} />
+      <Tab.Screen name="Events" component={EventsScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Notifications" component={NotificationsScreen} />
+      <Tab.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
+    </Tab.Navigator>
+  );
+}
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => {
-
-            let iconName;
-
-            if (route.name === "Home") {
-              iconName = "home";
-            } else if (route.name === "Chats") {
-              iconName = "comments";
-            } else if(route.name === "Notifications") {
-              iconName = "bell";
-            } else if (route.name === "Settings") {
-              iconName = "cog";
-            }
-
-            return <FontAwesome name={iconName} size={22} color={color} />;
-          },
-          tabBarActiveTintColor: "#007AFF",
-          tabBarInactiveTintColor: "gray",
-        })}
-      >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Chats" component={SettingsStack} />
-        <Tab.Screen name="Notifications" component={NotificationsScreen} />
-        <Tab.Screen name="Settings" component={SettingsStack} />
-      </Tab.Navigator>
-    </NavigationContainer>
+    <AuthProvider>
+      <NavigationRoot />
+    </AuthProvider>
   );
 }
