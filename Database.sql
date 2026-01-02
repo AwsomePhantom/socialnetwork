@@ -8,6 +8,8 @@ CREATE TABLE profiles (
     name VARCHAR(255) NOT NULL,
     lastname VARCHAR(255) NOT NULL,
     birthdate DATE NOT NULL,
+    bio VARCHAR(255) DEFAULT NULL,
+    location VARCHAR(255) DEFAULT NULL,
     avatar VARCHAR(255),
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -97,12 +99,12 @@ START TRANSACTION;
 
 INSERT INTO profiles (name, lastname, birthdate) VALUES
     ('rabinul', 'islam', '1992-11-10'),
-    ('noor', 'chowdhury', '1985-08-13'),
+    ('bob', 'white', '1985-08-13'),
     ('ted', 'ross', '1987-01-25');
 
 INSERT INTO users (profile_id, email, password) VALUES
     (1, 'rabinul@email.com', '123456'), -- **CORRECTION 4: Password should be a string**
-    (2, 'noor@email.com', '123456'), -- **CORRECTION 5: Fixed 'noor.com' to 'noor@email.com'**
+    (2, 'bob@email.com', '123456'), -- **CORRECTION 5: Fixed 'bob.com' to 'bob@email.com'**
     (3, 'ted@email.com', '123456');
 
 INSERT INTO clubs (name) VALUES ('COMPUTER CLUB'), ('PHOTOGRAPHY CLUB'), ('ENGLISH DEBATE CLUB');
