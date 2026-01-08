@@ -10,49 +10,64 @@ import { LoginDto } from './dto/login.dto';
 export class AuthService {
   constructor(
     @InjectRepository(Profile)
-    private profilesRepository: Repository<Profile>,
+    private readonly profilesRepository: Repository<Profile>,
     @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<{ profile: Profile; user: User }> {
     const existingUser = await this.usersRepository.findOne({
       where: { email: registerDto.email },
     });
+    
     if (existingUser) {
       throw new BadRequestException('User with this email already exists.');
     }
 
-    const newProfile = this.profilesRepository.create({
+    // Explicitly type the creation to prevent the 'Profile[]' error
+ const profileData: Partial<Profile> = {
       name: registerDto.name,
       lastname: registerDto.lastname,
       birthdate: new Date(registerDto.birthdate),
-    });
-    const profile = await this.profilesRepository.save(newProfile);
+      bio: registerDto.bio ?? null,      // ?? null is now allowed
+      location: registerDto.location ?? null, 
+    };
 
-    const newUser = this.usersRepository.create({
-      profileId: profile.id,
+    const profileInstance = this.profilesRepository.create(profileData);
+    const profile = await this.profilesRepository.save(profileInstance);
+
+    const userInstance = this.usersRepository.create({
+      profileId: profile.id, 
       email: registerDto.email,
       password: registerDto.password,
     });
-    const user = await this.usersRepository.save(newUser);
+    const user = await this.usersRepository.save(userInstance);
 
     return { profile, user };
   }
 
-  async login(loginDto: LoginDto): Promise<User> {
+  async login(loginDto: LoginDto): Promise<any> {
     const user = await this.usersRepository.findOne({
-      where: { email: loginDto.email },
+      where: { 
+        email: loginDto.email, 
+        password: loginDto.password 
+      },
+      relations: ['profile'], 
     });
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials.');
     }
 
-    if (user.password !== loginDto.password) {
-      throw new UnauthorizedException('Invalid credentials.');
-    }
-
-    return user;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.profile?.name,
+      lastname: user.profile?.lastname,
+      birthdate: user.profile?.birthdate,
+      avatar: user.profile?.avatar,
+      bio: user.profile?.bio,
+      location: user.profile?.location,
+    };
   }
 }
