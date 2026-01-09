@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../posts/entities/posts.entity';
@@ -34,24 +34,22 @@ export class PostsService {
   };
 }
 
-  // Get the Feed
-  async findAll(currentUserId?: number) {
-    const posts = await this.postsRepo.find({
-      relations: ['user', 'user.profile', 'likes'],
-      order: { created: 'DESC' },
-    });
-
-    return posts.map(post => ({
-      id: post.id,
-      user: post.user.profile.name,
-      content: post.message,
-      likes: post.likes ? post.likes.length : 0,
-      time: post.created,
-      isLiked: currentUserId 
-        ? post.likes.some(l => l.userId === currentUserId) 
-        : false,
-    }));
-  }
+async findAll(currentUserId?: number) {
+  return await this.postsRepo.query(`
+    SELECT 
+      p.id as id,           -- This is the Post ID
+      p.user_id as user_id, -- This is the User ID (Owner)
+      p.message as content, 
+      p.created as time, 
+      prof.name as user,
+      (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) as likes,
+      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = ?) as isLiked
+    FROM posts p
+    JOIN users u ON p.user_id = u.id
+    JOIN profiles prof ON u.profile_id = prof.id
+    ORDER BY p.created DESC
+  `, [currentUserId]);
+}
 
   async toggleLike(postId: number, userId: number) {
     // Check if the post exists first
@@ -93,4 +91,16 @@ export class PostsService {
       isLiked: false
     };
   }
+
+  async remove(id: number, userId: number) {
+  const post = await this.postsRepo.findOne({ where: { id }, relations: ['user'] });
+  
+  if (!post) throw new NotFoundException('Post not found');
+  if (post.user.id !== userId) throw new UnauthorizedException('You can only delete your own posts');
+
+  await this.postsRepo.remove(post);
+  return { success: true };
+}
+
+
 }

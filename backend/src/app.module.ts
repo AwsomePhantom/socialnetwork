@@ -10,6 +10,8 @@ import { MessagesModule } from './messages/messages.module';
 import { Post } from './posts/entities/posts.entity';
 import { Like } from './likes/entities/likes.entity';
 import { PostsModule } from './posts/posts.module';
+import { Comment } from './comments/entities/comment.entity';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -20,13 +22,14 @@ import { PostsModule } from './posts/posts.module';
       username: 'root',
       password: 'root',
       database: 'swelab',
-      entities: [Profile, User, Message, Post, Like],
+      entities: [Profile, User, Message, Post, Like, Comment],
       synchronize: true, // ONLY for development! Set to false in production.
     }),
     ProfilesModule,
     AuthModule,
     MessagesModule,
     PostsModule,
+    CommentsModule,
   ],
   controllers: [],
   providers: [],

@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Param, Query, ParseIntPipe, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, ParseIntPipe, NotFoundException, Delete } from '@nestjs/common';
 import { PostsService } from './posts.service';
 
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(private readonly postsService: PostsService) { }
 
   @Get(':id')
   async findOne(
@@ -50,5 +50,15 @@ export class PostsController {
     @Body('message') message: string,
   ) {
     return await this.postsService.create(userId, message);
+  }
+
+  @Delete(':id')
+  async deletePost(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('userId') userId: string, // Change @Body() to @Query()
+  ) {
+    // Now body is not involved, so it won't be undefined
+    console.log('Delete Request for Post:', id, 'from User:', userId);
+    return await this.postsService.remove(id, Number(userId));
   }
 }
