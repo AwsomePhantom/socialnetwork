@@ -1,94 +1,55 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useAuth } from '../../auth/AuthContext';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useAuth } from '../../contexts/AuthContext';
 
 const menuItems = [
-  { id: '1', title: 'Profile Settings', screen: 'Profile', icon: '👤' },
-  { id: '2', title: 'Account and Security', screen: 'Account', icon: '🔒' },
-  { id: '3', title: 'Privacy Settings', screen: 'Privacy', icon: '👀' },
-  { id: '4', title: 'Notifications', screen: 'NotificationsSettings', icon: '🔔' },
-  { id: '5', title: 'Help & Support', screen: 'Help', icon: '❓' },
+  { id: '1', title: 'Profile Settings', screen: 'Profile', icon: 'person-outline' },
+{ id: '2', title: 'Privacy Settings', screen: 'Privacy', icon: 'lock-closed-outline' },
+{ id: '3', title: 'Account Security', screen: 'Account', icon: 'shield-checkmark-outline' },
+{ id: '4', title: 'Help & Support', screen: 'help-circle-outline' },
 ];
 
 const SettingsListScreen = ({ navigation }) => {
-  const { user, logout } = useAuth();
-
-  const handlePress = (item) => {
-    if (item.screen) {
-      // Navigate to the specific screen within the Settings Stack
-      navigation.navigate(item.screen);
-    } else {
-      // Example for a direct action (like log out)
-      Alert.alert('Action', `Action for ${item.title}`);
-    }
-  };
+  const { logout } = useAuth();
 
   return (
-    <ScrollView style={styles.container}>
-      {menuItems.map((item) => (
-        <TouchableOpacity 
-          key={item.id}
-          style={styles.menuItem}
-          onPress={() => handlePress(item)}
-        >
-          <Text style={styles.icon}>{item.icon}</Text>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.arrow}>&gt;</Text>
-        </TouchableOpacity>
-      ))}
-
-      {/* Logout button */}
-      <TouchableOpacity 
-        style={styles.logoutButton}
-        onPress={logout}
+    <SafeAreaView style={styles.container}>
+    <ScrollView>
+    <View style={styles.section}>
+    {menuItems.map((item) => (
+      <TouchableOpacity
+      key={item.id}
+      style={styles.menuItem}
+      onPress={() => item.screen && navigation.navigate(item.screen)}
       >
-        <Text style={styles.logoutText}>Log Out</Text>
+      <View style={styles.iconBg}>
+      <Ionicons name={item.icon} size={20} color="#4f46e5" />
+      </View>
+      <Text style={styles.title}>{item.title}</Text>
+      <Ionicons name="chevron-forward" size={20} color="#cbd5e1" />
       </TouchableOpacity>
+    ))}
+    </View>
+
+    <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+    <Text style={styles.logoutText}>Sign Out</Text>
+    </TouchableOpacity>
+    <Text style={styles.versionText}>Version 1.0.2 (2026)</Text>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9f9f9',
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: 'white',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#eee',
-  },
-  icon: {
-    fontSize: 20,
-    marginRight: 15,
-  },
-  title: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-  },
-  arrow: {
-    fontSize: 18,
-    color: '#ccc',
-  },
-  logoutButton: {
-    marginTop: 30,
-    marginHorizontal: 15,
-    padding: 15,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#eee',
-    alignItems: 'center',
-  },
-  logoutText: {
-    color: 'red',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  container: { flex: 1, backgroundColor: '#f8fafc' },
+  section: { backgroundColor: '#fff', marginTop: 20, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#e2e8f0' },
+  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  iconBg: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#eff6ff', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+  title: { flex: 1, fontSize: 16, fontWeight: '500', color: '#1e293b' },
+  logoutButton: { marginTop: 32, marginHorizontal: 20, backgroundColor: '#fff', padding: 16, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#fee2e2' },
+  logoutText: { color: '#ef4444', fontWeight: '700', fontSize: 16 },
+  versionText: { textAlign: 'center', color: '#94a3b8', fontSize: 12, marginTop: 20 }
 });
 
 export default SettingsListScreen;

@@ -1,115 +1,76 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useLayoutEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, SafeAreaView, Modal, Alert } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const SAMPLE_CHATS = [
-  { id: 'c1', title: 'Bob White', lastMessage: 'See you there tomorrow!', time: '10m ago', unreadCount: 2, isGroup: false },
-  { id: 'c2', title: 'Ted Ross', lastMessage: 'Did everyone review the deck?', time: '2h ago', unreadCount: 0, isGroup: true },
-  { id: 'c3', title: 'Marc Barn', lastMessage: 'Sounds good!', time: '1d ago', unreadCount: 0, isGroup: false },
-  { id: 'c4', title: 'Shakil Iqbal', lastMessage: 'Happy Holidays!', time: '3d ago', unreadCount: 5, isGroup: true },
+const SAMPLE_USERS = [
+  { id: 'u1', name: 'Alice Freeman' },
+  { id: 'u2', name: 'Charlie Day' },
+  { id: 'u3', name: 'Diana Prince' },
 ];
 
 const ConversationListScreen = ({ navigation }) => {
-  const renderChat = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.chatItem}
-      // Navigate to the ChatRoom, passing necessary conversation details
-      onPress={() => 
-        navigation.navigate('ChatRoom', { 
-          chatId: item.id, 
-          chatTitle: item.title,
-          isGroup: item.isGroup
-        })
-      }
-    >
-      <View style={styles.avatarPlaceholder} />
-      
-      <View style={styles.chatContent}>
-        <Text style={styles.chatTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.lastMessage} numberOfLines={1}>
-          {item.lastMessage}
-        </Text>
-      </View>
-      
-      <View style={styles.chatInfo}>
-        <Text style={styles.chatTime}>{item.time}</Text>
-        {item.unreadCount > 0 && (
-          <View style={styles.unreadBadge}>
-            <Text style={styles.unreadText}>{item.unreadCount}</Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+  const [isModalVisible, setModalVisible] = useState(false);
+
+  // Add "+" button to top right of header
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={() => setModalVisible(true)} style={{ marginRight: 15 }}>
+          <Ionicons name="add-circle-outline" size={28} color="#4f46e5" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
+  const startNewChat = (user) => {
+    setModalVisible(false);
+    navigation.navigate('ChatRoom', { 
+      chatId: Date.now().toString(), 
+      chatTitle: user.name 
+    });
+  };
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={SAMPLE_CHATS}
-        keyExtractor={(item) => item.id}
-        renderItem={renderChat}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
-    </View>
+    <SafeAreaView style={styles.container}>
+      {/* ... (Your existing FlatList for chats goes here) ... */}
+
+      {/* New Chat Selection Modal */}
+      <Modal visible={isModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>New Message</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Text style={styles.closeText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={SAMPLE_USERS}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.userRow} onPress={() => startNewChat(item)}>
+                  <View style={styles.userAvatar} />
+                  <Text style={styles.userName}>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  chatItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-  },
-  avatarPlaceholder: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#ccc',
-    marginRight: 15,
-  },
-  chatContent: {
-    flex: 1,
-  },
-  chatTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  lastMessage: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
-  chatInfo: {
-    alignItems: 'flex-end',
-    marginLeft: 10,
-  },
-  chatTime: {
-    fontSize: 12,
-    color: '#999',
-    marginBottom: 5,
-  },
-  unreadBadge: {
-    backgroundColor: '#007AFF',
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-  },
-  unreadText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: '#ccc',
-    marginLeft: 80, // Start the separator after the avatar
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, height: '70%', padding: 20 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontWeight: '800', color: '#1e293b' },
+  closeText: { color: '#4f46e5', fontWeight: '600' },
+  userRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  userAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#e2e8f0', marginRight: 12 },
+  userName: { fontSize: 16, color: '#1e293b', fontWeight: '500' },
 });
 
 export default ConversationListScreen;

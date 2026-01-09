@@ -1,174 +1,98 @@
 import React, { useState, useLayoutEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  KeyboardAvoidingView, 
-  Platform 
-} from 'react-native';
-
-const SAMPLE_MESSAGES = [
-  { id: 'm1', text: 'Hey, did you see the new post?', user: 'other' },
-  { id: 'm2', text: 'I did! It looks great.', user: 'me' },
-  { id: 'm3', text: 'When should we schedule our meeting?', user: 'other' },
-];
-
-const MessageBubble = ({ message }) => {
-  const isMyMessage = message.user === 'me';
-  
-  return (
-    <View style={[styles.messageContainer, isMyMessage ? styles.myMessageContainer : styles.theirMessageContainer]}>
-      <View style={[styles.bubble, isMyMessage ? styles.myBubble : styles.theirBubble]}>
-        {!isMyMessage && <Text style={styles.senderName}>Sender Name</Text>} 
-        <Text style={styles.messageText}>{message.text}</Text>
-      </View>
-    </View>
-  );
-};
+import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Alert } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const ChatRoomScreen = ({ route, navigation }) => {
-  const { chatId, chatTitle, isGroup } = route.params; 
-  const [messages, setMessages] = useState(SAMPLE_MESSAGES);
+  const { chatTitle } = route.params;
   const [inputText, setInputText] = useState('');
+  const [messages, setMessages] = useState([
+    { id: '1', text: 'Hey, did you see the new post?', user: 'other' },
+    { id: '2', text: 'I did! It looks great.', user: 'me' },
+  ]);
 
-  // Dynamic header
+  // Add "Add User" button to the Chat Header
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: chatTitle, // Sets the header title dynamically
+      headerTitle: chatTitle,
+      headerRight: () => (
+        <TouchableOpacity 
+          onPress={() => Alert.alert("Add to Chat", "Search for users to add to this conversation...")}
+          style={{ marginRight: 10 }}
+        >
+          <Ionicons name="person-add-outline" size={22} color="#4f46e5" />
+        </TouchableOpacity>
+      ),
     });
   }, [navigation, chatTitle]);
-  // -----------------------------
 
   const handleSend = () => {
-    if (inputText.trim().length === 0) return;
-
-    const newMessage = {
-      id: Date.now().toString(),
-      text: inputText,
-      user: 'me',
-    };
-
-    setMessages(prevMessages => [...prevMessages, newMessage]);
+    if (!inputText.trim()) return;
+    setMessages([{ id: Date.now().toString(), text: inputText, user: 'me' }, ...messages]);
     setInputText('');
-    // Call post method to store the message in the database
   };
-  
-  const renderItem = ({ item }) => <MessageBubble message={item} />;
+
+  const renderItem = ({ item }) => {
+    const isMe = item.user === 'me';
+    return (
+      <View style={[styles.messageRow, isMe ? styles.myRow : styles.theirRow]}>
+        <View style={[styles.bubble, isMe ? styles.myBubble : styles.theirBubble]}>
+          <Text style={[styles.messageText, isMe ? styles.myText : styles.theirText]}>{item.text}</Text>
+        </View>
+      </View>
+    );
+  };
 
   return (
-    // KeyboardAvoidingView is essential for shifting the input when the keyboard appears
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0} // Adjust this value based on header height
-    >
-      {/* Message List */}
-      <FlatList
-        data={messages.slice().reverse()} // Reverse the array to show newest messages at the bottom
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        inverted // Invert the FlatList to display from bottom up
-        style={styles.messagesList}
-      />
-
-      {/* Input Area */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Type a message..."
-          value={inputText}
-          onChangeText={setInputText}
-          multiline={false} 
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <FlatList
+          data={messages}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          inverted
+          contentContainerStyle={styles.listContent}
         />
-        <TouchableOpacity 
-          style={[styles.sendButton, { opacity: inputText.trim().length > 0 ? 1 : 0.5 }]}
-          onPress={handleSend}
-          disabled={inputText.trim().length === 0}
-        >
-          <Text style={styles.sendButtonText}>Send</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+        <View style={styles.inputBar}>
+          <TextInput
+            style={styles.input}
+            placeholder="Message..."
+            value={inputText}
+            onChangeText={setInputText}
+            placeholderTextColor="#94a3b8"
+          />
+          <TouchableOpacity
+            style={[styles.sendBtn, !inputText.trim() && styles.sendBtnDisabled]}
+            onPress={handleSend}
+          >
+            <Ionicons name="send" size={18} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f0f0f0',
-  },
-  messagesList: {
-    paddingHorizontal: 10,
-  },
-  
-  // Message Bubble Styles
-  messageContainer: {
-    marginVertical: 4,
-    maxWidth: '80%',
-  },
-  myMessageContainer: {
-    alignSelf: 'flex-end',
-  },
-  theirMessageContainer: {
-    alignSelf: 'flex-start',
-  },
-  bubble: {
-    padding: 10,
-    borderRadius: 15,
-  },
-  myBubble: {
-    backgroundColor: '#007AFF', // Blue for messages
-    borderTopRightRadius: 2, // Slight styling to make it look like a bubble tail
-  },
-  theirBubble: {
-    backgroundColor: '#ffffff', // White/light gray for others' messages
-    borderTopLeftRadius: 2,
-  },
-  messageText: {
-    color: 'black',
-  },
-  senderName: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginBottom: 2,
-    color: '#007AFF',
-  },
-  
-  // Input Styles
-  inputContainer: {
-    flexDirection: 'row',
-    padding: 8,
-    backgroundColor: '#fff',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#ccc',
-    alignItems: 'center',
-  },
-  textInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    marginRight: 8,
-    fontSize: 16,
-    maxHeight: 100,
-  },
-  sendButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-  },
-  sendButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  container: { flex: 1, backgroundColor: '#f8fafc' },
+  flex: { flex: 1 },
+  listContent: { padding: 20 },
+  messageRow: { marginBottom: 12, flexDirection: 'row' },
+  myRow: { justifyContent: 'flex-end' },
+  theirRow: { justifyContent: 'flex-start' },
+  bubble: { maxWidth: '80%', padding: 12, borderRadius: 18 },
+  myBubble: { backgroundColor: '#4f46e5', borderBottomRightRadius: 4 },
+  theirBubble: { backgroundColor: '#fff', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#e2e8f0' },
+  myText: { color: '#fff' },
+  theirText: { color: '#1e293b' },
+  messageText: { fontSize: 15, lineHeight: 20 },
+  inputBar: { flexDirection: 'row', padding: 12, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e2e8f0', alignItems: 'center' },
+  input: { flex: 1, backgroundColor: '#f1f5f9', borderRadius: 20, paddingHorizontal: 16, height: 40, color: '#1e293b', marginRight: 10 },
+  sendBtn: { backgroundColor: '#4f46e5', width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  sendBtnDisabled: { backgroundColor: '#cbd5e1' },
 });
 
 export default ChatRoomScreen;

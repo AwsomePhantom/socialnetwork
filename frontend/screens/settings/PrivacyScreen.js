@@ -1,99 +1,46 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, ScrollView } from 'react-native';
-
-// Component for a single setting toggle
-const SettingToggle = ({ title, description, initialValue }) => {
-  const [isEnabled, setIsEnabled] = useState(initialValue);
-  const toggleSwitch = () => setIsEnabled(previousState => !previousState);
-
-  return (
-    <View style={styles.settingRow}>
-      <View style={styles.textContainer}>
-        <Text style={styles.settingTitle}>{title}</Text>
-        <Text style={styles.settingDescription}>{description}</Text>
-      </View>
-      <Switch
-        trackColor={{ false: "#767577", true: "#81b0ff" }}
-        thumbColor={isEnabled ? "#2196F3" : "#f4f3f4"}
-        onValueChange={toggleSwitch}
-        value={isEnabled}
-      />
-    </View>
-  );
-};
-
+import { View, Text, StyleSheet, Switch, ScrollView, SafeAreaView } from 'react-native';
 
 const PrivacyScreen = () => {
+  const [isPublic, setIsPublic] = useState(true);
+  const [showStatus, setShowStatus] = useState(false);
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Visibility Controls</Text>
-      
-      <SettingToggle 
-        title="Who Can See My Profile?"
-        description="Control access to your full profile details (e.g., Public, Friends Only)."
-        initialValue={true}
-      />
-      
-      <SettingToggle 
-        title="Show Online Status"
-        description="Allow friends to see when you are currently active or online."
-        initialValue={false}
-      />
-      
-      <SettingToggle 
-        title="Allow Message Requests"
-        description="Filter who can send you the first message request."
-        initialValue={true}
-      />
-      
-      <Text style={styles.header}>Data Permissions</Text>
+    <SafeAreaView style={styles.container}>
+    <ScrollView style={styles.flex}>
+    <Text style={styles.sectionTitle}>Account Visibility</Text>
+    <View style={styles.card}>
+    <View style={styles.row}>
+    <View style={styles.textContainer}>
+    <Text style={styles.settingTitle}>Public Profile</Text>
+    <Text style={styles.description}>Allow anyone to see your posts and activity.</Text>
+    </View>
+    <Switch value={isPublic} onValueChange={setIsPublic} trackColor={{ true: '#4f46e5' }} />
+    </View>
 
-      <SettingToggle 
-        title="Location Services"
-        description="Share your approximate location with posts and events."
-        initialValue={false}
-      />
-
+    <View style={[styles.row, styles.noBorder]}>
+    <View style={styles.textContainer}>
+    <Text style={styles.settingTitle}>Online Status</Text>
+    <Text style={styles.description}>Show when you are active to your friends.</Text>
+    </View>
+    <Switch value={showStatus} onValueChange={setShowStatus} trackColor={{ true: '#4f46e5' }} />
+    </View>
+    </View>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#666',
-    padding: 15,
-    backgroundColor: '#f0f0f0',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ccc',
-  },
-  settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#eee',
-  },
-  textContainer: {
-    flex: 1,
-    paddingRight: 10,
-  },
-  settingTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  settingDescription: {
-    fontSize: 13,
-    color: '#777',
-  },
+  container: { flex: 1, backgroundColor: '#f8fafc' },
+  flex: { flex: 1 },
+  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', margin: 20, marginBottom: 8 },
+  card: { backgroundColor: '#fff', borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#e2e8f0', paddingHorizontal: 20 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  noBorder: { borderBottomWidth: 0 },
+  textContainer: { flex: 1, paddingRight: 16 },
+  settingTitle: { fontSize: 16, fontWeight: '600', color: '#1e293b', marginBottom: 4 },
+  description: { fontSize: 13, color: '#94a3b8', lineHeight: 18 }
 });
 
 export default PrivacyScreen;
