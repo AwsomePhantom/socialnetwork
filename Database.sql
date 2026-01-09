@@ -93,6 +93,33 @@ CREATE TABLE club_messages (
     FOREIGN KEY (sender_profile_id) REFERENCES profiles(id)
 );
 
+
+CREATE TABLE posts (
+    id int AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    message TEXT NOT NULL,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE likes (
+    id int AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    post_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
+
+CREATE TABLE comments (
+    id int AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    post_id INT NOT NULL,
+    comment TEXT NOT NULL,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
+
 -- Insert sample data
 
 START TRANSACTION;
@@ -110,5 +137,12 @@ INSERT INTO users (profile_id, email, password) VALUES
 INSERT INTO clubs (name) VALUES ('COMPUTER CLUB'), ('PHOTOGRAPHY CLUB'), ('ENGLISH DEBATE CLUB');
 INSERT INTO club_members (club_id, profile_id) VALUES (1, 1), (2, 2), (3, 3);
 INSERT INTO messages(sender, receiver, message) VALUES (1, 2, 'Hello World!');
+
+INSERT INTO posts (user_id, message) VALUES
+    (1, "Hi, welcome to USN"),
+    (2, "Hi! I'm Bob");
+
+INSERT INTO likes (user_id, post_id) VALUES
+    (1, 2), (2, 1);
 
 COMMIT;
